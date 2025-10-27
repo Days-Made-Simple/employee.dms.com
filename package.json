@@ -1,7 +1,7 @@
 {
-  "name": "DMSMP",
+  "name": "employee-dms-com",
   "version": "1.0.0",
-  "description": "Dashboard hosted on Vercel with Firebase Auth",
+  "description": "Employee dashboard hosted on Vercel with Firebase Auth",
   "main": "employeelogin.html",
   "scripts": {
     "start": "vercel dev",
