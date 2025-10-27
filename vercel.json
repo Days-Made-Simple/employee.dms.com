@@ -7,7 +7,7 @@
     { "src": "public/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/employeelogin.html", "dest": "/public/employeelogin.html" },
+    { "src": "/", "dest": "/public/employeelogin.html" },
     { "src": "/forgotpassword.html", "dest": "/public/forgotpassword.html" },
     { "src": "/employeedashboard.html", "dest": "/public/employeedashboard.html" }
   ]
