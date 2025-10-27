@@ -8,7 +8,7 @@
   ],
   "routes": [
     { "src": "/", "dest": "/public/employeelogin.html" },
-    { "src": "/forgotpassword.html", "dest": "/public/forgotpassword.html" },
-    { "src": "/employeedashboard.html", "dest": "/public/employeedashboard.html" }
+    { "src": "/resetpw", "dest": "/public/forgotpassword.html" },
+    { "src": "/dashboard", "dest": "/public/employeedashboard.html" }
   ]
 }
