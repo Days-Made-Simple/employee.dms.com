@@ -6,6 +6,6 @@
     { "src": "css/*.css", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/employeelogin.html" }
   ]
 }
