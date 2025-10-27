@@ -3,57 +3,218 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
+  <title>Employee Dashboard</title>
   <style>
-    body{margin:0;font-family:Inter,Arial;background:#f9fafb;display:flex;flex-direction:row-reverse;height:100vh}
-    .sidebar{width:250px;background:#ffffff;color:#111827;display:flex;flex-direction:column;padding:24px;border-radius:12px;margin:20px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
-    .main{flex:1;padding:32px;overflow:auto;display:flex;flex-direction:column;align-items:flex-start}
-    .topbar{width:100%;display:flex;justify-content:flex-end;align-items:center;padding:12px 20px;background:#111827;color:#fff;border-radius:12px;margin-bottom:16px}
-    .topbar button{background:#f43f5e;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600}
-    h1{margin-bottom:24px}
-    .cards{display:flex;flex-wrap:wrap;flex-direction:row;gap:20px}
-    .card{flex:1 1 200px;min-width:200px;background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);font-weight:600;display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+    /* Disable horizontal scroll globally */
+    html, body {
+      margin: 0;
+      overflow-x: hidden;
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f9fafb;
+      height: 100vh;
+      display: flex;
+      flex-direction: row-reverse;
+    }
 
+    /* Topbar width variable */
+    :root {
+      --topbar-width: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #fff;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      border-radius: 16px;
+      margin: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 20px;
+      height: calc(100vh - 40px);
+    }
+
+    .sidebar h2 {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .notifications {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+
+    .notification-item {
+      background: #f3f4f6;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .notification-item:hover {
+      background: #e5e7eb;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Topbar */
+    .topbar {
+      width: var(--topbar-width);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #f3f4f6;
+      color: #fff;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: width 0.3s ease;
+    }
+
+    .topbar button {
+      background: #f43f5e;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    
+    .topbar-title {
+      font-weight: 600;
+      justify-content: left;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .topbar button:hover {
+      background: #e11d48;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+      font-weight: 700;
+      font-size: 28px;
+      color: #111827;
+    }
+
+    /* Cards */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .card {
+      flex: 1 1 220px;
+      min-width: 220px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .card img {
+      width: 36px;
+      height: auto;
+    }
+
+    /* Responsive adjustments */
     @media (max-width:768px){
-      body{flex-direction:column;align-items:center}
-      .sidebar{width:90%;margin:16px auto;order:-1}
-      .main{width:100%;padding:16px}
-      .cards{justify-content:center}
+      body {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .sidebar {
+        display: none; /* Hide notifications on small screens */
+      }
+
+      .main {
+        width: 100%;
+        padding: 16px 20px;
+        box-sizing: border-box;
+      }
+
+      .cards {
+        justify-content: center;
+      }
+
+      /* Optionally reduce topbar width */
+      :root {
+        --topbar-width: 90%;
+      }
     }
   </style>
 </head>
 <body>
   <aside class="sidebar">
-    <h2 style="margin-bottom:16px;font-size:18px;color:#111827">Notifications</h2>
-    <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">📢 Welcome back!</div>
-      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">✅ Your account is secure</div>
-      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">📩 New message received</div>
+    <h2>Notifications</h2>
+    <div class="notifications">
+      <div class="notification-item">📢 Welcome back!</div>
+      <div class="notification-item">✅ Your account is secure</div>
+      <div class="notification-item">📩 New message received</div>
     </div>
   </aside>
+
   <main class="main">
     <div class="topbar">
-      <button onclick="logoutUser()">Log Out</button>
-    </div>
-    <h1>Dashboard</h1>
+    <!-- Topbar text/title on the left -->
+    <span class="topbar-title">Employee Dashboard</span>
+
+    <!-- Button on the right -->
+    <button onclick="logoutUser()">Log Out</button>
+   </div>
+    <h1>👋 Welcome Back!</h1>
     <div class="cards">
       <a class="card" href="https://myaccount.microsoft.com" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" style="width:32px;height:auto;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft">
         <span>Microsoft Account</span>
       </a>
-
       <a class="card" href="#">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo_TV_2015.png" alt="Account" style="width:32px;height:auto;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo_TV_2015.png" alt="Account">
         <span>Account Management</span>
       </a>
-
       <a class="card" href="https://drive.google.com" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" alt="Google Drive" style="width:32px;height:auto;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" alt="Google Drive">
         <span>Google Drive</span>
       </a>
-
       <a class="card" href="#">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Privacy_icon.png" alt="Security" style="width:32px;height:auto;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Privacy_icon.png" alt="Privacy & Security">
         <span>Privacy & Security</span>
       </a>
     </div>
@@ -75,13 +236,20 @@
     const auth = firebase.auth();
 
     // Protect dashboard
-    auth.onAuthStateChanged(user=>{if(!user) window.location.href='index.html';});
+    auth.onAuthStateChanged(user => { if(!user) window.location.href='index.html'; });
 
-    function logoutUser(){
-      auth.signOut().then(()=>{
-        window.location.href='/';
-      });
+    function logoutUser() {
+      auth.signOut().then(() => { window.location.href='/'; });
     }
+
+    // Optional: dynamically adjust topbar width on resize
+    window.addEventListener('resize', () => {
+      if(window.innerWidth < 768) {
+        document.documentElement.style.setProperty('--topbar-width', '90%');
+      } else {
+        document.documentElement.style.setProperty('--topbar-width', '100%');
+      }
+    });
   </script>
 </body>
 </html>
