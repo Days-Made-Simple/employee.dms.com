@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard</title>
+  <style>
+    body{margin:0;font-family:Inter,Arial;background:#f9fafb;display:flex;flex-direction:row-reverse;height:100vh}
+    .sidebar{width:250px;background:#ffffff;color:#111827;display:flex;flex-direction:column;padding:24px;border-radius:12px;margin:20px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+    .main{flex:1;padding:32px;overflow:auto;display:flex;flex-direction:column;align-items:flex-start}
+    .topbar{width:100%;display:flex;justify-content:flex-end;align-items:center;padding:12px 20px;background:#111827;color:#fff;border-radius:12px;margin-bottom:16px}
+    .topbar button{background:#f43f5e;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+    h1{margin-bottom:24px}
+    .cards{display:flex;flex-wrap:wrap;flex-direction:row;gap:20px}
+    .card{flex:1 1 200px;min-width:200px;background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);font-weight:600;display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+
+    @media (max-width:768px){
+      body{flex-direction:column;align-items:center}
+      .sidebar{width:90%;margin:16px auto;order:-1}
+      .main{width:100%;padding:16px}
+      .cards{justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2 style="margin-bottom:16px;font-size:18px;color:#111827">Notifications</h2>
+    <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">📢 Welcome back!</div>
+      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">✅ Your account is secure</div>
+      <div style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:14px;">📩 New message received</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <button onclick="logoutUser()">Log Out</button>
+    </div>
+    <h1>Dashboard</h1>
+    <div class="cards">
+      <a class="card" href="https://myaccount.microsoft.com" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft" style="width:32px;height:auto;">
+        <span>Microsoft Account</span>
+      </a>
+
+      <a class="card" href="#">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo_TV_2015.png" alt="Account" style="width:32px;height:auto;">
+        <span>Account Management</span>
+      </a>
+
+      <a class="card" href="https://drive.google.com" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" alt="Google Drive" style="width:32px;height:auto;">
+        <span>Google Drive</span>
+      </a>
+
+      <a class="card" href="#">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Privacy_icon.png" alt="Security" style="width:32px;height:auto;">
+        <span>Privacy & Security</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC6ReZ9JiKAhVwXLUwgzRRsk2Daw3pRli8",
+      authDomain: "daysmadesimple-admin.firebaseapp.com",
+      projectId: "daysmadesimple-admin",
+      storageBucket: "daysmadesimple-admin.firebasestorage.app",
+      messagingSenderId: "165327565681",
+      appId: "1:165327565681:web:e28364ebb3cb1d9a683cd0"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+
+    // Protect dashboard
+    auth.onAuthStateChanged(user=>{if(!user) window.location.href='index.html';});
+
+    function logoutUser(){
+      auth.signOut().then(()=>{
+        window.location.href='employee.html';
+      });
+    }
+  </script>
+</body>
+</html>
