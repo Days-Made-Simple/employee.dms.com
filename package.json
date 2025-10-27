@@ -1,0 +1,13 @@
+{
+  "name": "DMSMP",
+  "version": "1.0.0",
+  "description": "Dashboard hosted on Vercel with Firebase Auth",
+  "main": "employeelogin.html",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "author": "Days Made Simple",
+  "license": "MIT",
+  "dependencies": {}
+}
