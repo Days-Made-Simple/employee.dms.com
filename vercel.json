@@ -10,6 +10,5 @@
     { "src": "/", "dest": "/public/employeelogin.html" },
     { "src": "/resetpw", "dest": "/public/forgotpassword.html" },
     { "src": "/dashboard", "dest": "/public/employeedashboard.html" }
-    { "src": "/manage", "dest": "/public/accountmanagement.html" }
   ]
 }
