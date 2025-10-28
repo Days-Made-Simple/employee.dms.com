@@ -164,7 +164,7 @@ window.onload = async function(){
       document.getElementById('actionTitle').textContent = 'Verify Your Email';
       document.getElementById('actionSubtitle').textContent = '';
       auth.applyActionCode(oobCode)
-        .then(()=>{ messageEl.textContent = '✅ Email verified successfully! Redirecting...'; setTimeout(()=>window.location.href=continueUrl,2000); })
+        .then(()=>{ messageEl.textContent = '✅ Email verified successfully! Redirecting...'; setTimeout(()=>window.location.href='/',2000); })
         .catch(err=>messageEl.textContent='❌ '+err.message);
       break;
 
@@ -172,7 +172,7 @@ window.onload = async function(){
       document.getElementById('actionTitle').textContent = 'Recover Your Email';
       auth.checkActionCode(oobCode)
         .then(info => auth.applyActionCode(oobCode))
-        .then(()=>{ messageEl.textContent = '✅ Email restored successfully! Redirecting...'; setTimeout(()=>window.location.href=continueUrl,2000); })
+        .then(()=>{ messageEl.textContent = '✅ Email restored successfully! Redirecting...'; setTimeout(()=>window.location.href='/',2000); })
         .catch(err=>messageEl.textContent='❌ '+err.message);
       break;
 
@@ -183,7 +183,7 @@ window.onload = async function(){
         let email = window.localStorage.getItem('emailForSignIn');
         if(!email) email = window.prompt('Please provide your email for confirmation');
         auth.signInWithEmailLink(email, window.location.href)
-          .then(()=>{ window.localStorage.removeItem('emailForSignIn'); window.location.href=continueUrl; })
+          .then(()=>{ window.localStorage.removeItem('emailForSignIn'); window.location.href='/dashboard'; })
           .catch(err=>messageEl.textContent='❌ '+err.message);
       }
       break;
