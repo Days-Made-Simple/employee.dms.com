@@ -6,18 +6,134 @@
 <title>Create Customer Support ID</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-body { font-family: 'Inter', sans-serif; margin:0; background:#f5f6fa; }
-header { position: fixed; top:16px; left:50%; transform:translateX(-50%); background:#fff; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.12); width:85%; max-width:1000px; z-index:1000; }
-.nav-title { font-weight:600; font-size:16px; }
-header button { background:#ef4444; border:none; padding:6px 14px; color:#fff; border-radius:10px; cursor:pointer; font-weight:600; }
-.container { margin:100px auto 40px; padding:0 16px; max-width:1000px; display:flex; justify-content:center; }
-.card { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.05); width:400px; }
-.card h2 { font-size:20px; margin-bottom:16px; }
-input, select { width:100%; padding:8px 12px; margin:8px 0 16px 0; border-radius:8px; border:1px solid #d1d5db; font-size:15px; }
-input[readonly]{background:#f3f4f6;}
-button.btn { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:15px; transition:0.2s; }
-button.btn-primary{background:#6366f1;color:#fff;}
-button.btn-primary:hover{background:#4f46e5;}
+  body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background: #f5f6fa;
+    color: #111827;
+  }
+
+  /* Header / Navbar */
+  header {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    width: 90%;
+    max-width: 1000px;
+    z-index: 1000;
+  }
+
+  .nav-title {
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  header button {
+    background: #ef4444;
+    border: none;
+    padding: 8px 16px;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+
+  header button:hover { background: #dc2626; }
+
+  /* Container */
+  .container {
+    margin: 120px auto 40px auto;
+    padding: 0 16px;
+    max-width: 500px;
+  }
+
+  /* Card */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    text-align: left;
+  }
+
+  .card h2 {
+    font-size: 22px;
+    margin-bottom: 24px;
+    color: #111827;
+  }
+
+  /* Form */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+  }
+
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+
+  input[readonly] {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-generate {
+    background: #6366f1;
+    color: #fff;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+
+  .btn-generate:hover { background: #4f46e5; }
+
+  .btn-submit {
+    background: #10b981;
+    color: #fff;
+    width: 100%;
+  }
+
+  .btn-submit:hover { background: #059669; }
+
+  #message {
+    margin-top: 16px;
+    font-weight: 600;
+    color: #059669;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -31,25 +147,34 @@ button.btn-primary:hover{background:#4f46e5;}
 <div class="container">
   <div class="card">
     <h2>Customer Information</h2>
-    <label>Customer ID</label>
-    <input type="text" id="customerId" readonly>
-    <button class="btn" onclick="generateID()">Generate ID</button>
 
-    <label>Customer Email</label>
-    <input type="email" id="customerEmail">
+    <div class="form-group">
+      <label>Customer ID</label>
+      <input type="text" id="customerId" readonly>
+      <button class="btn btn-generate" onclick="generateID()">Generate ID</button>
+    </div>
 
-    <label>Priority</label>
-    <select id="priority">
-      <option value="Low">Low</option>
-      <option value="Medium">Medium</option>
-      <option value="High">High</option>
-    </select>
+    <div class="form-group">
+      <label>Customer Email</label>
+      <input type="email" id="customerEmail" placeholder="customer@example.com">
+    </div>
 
-    <label>Handler Name</label>
-    <input type="text" id="handlerName">
+    <div class="form-group">
+      <label>Priority</label>
+      <select id="priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+    </div>
 
-    <button class="btn btn-primary" onclick="submitForm()">Submit</button>
-    <div id="message" style="margin-top:12px;color:green;"></div>
+    <div class="form-group">
+      <label>Handler Name</label>
+      <input type="text" id="handlerName" placeholder="Handler Name">
+    </div>
+
+    <button class="btn btn-submit" onclick="submitForm()">Submit</button>
+    <div id="message"></div>
   </div>
 </div>
 
@@ -100,7 +225,7 @@ function submitForm(){
 
 // 🔹 Call Google Apps Script
 function sendEmail(id,email,priority,handler){
-  const url = 'https://script.google.com/macros/s/AKfycbzeyu_TlpP0LPd1O2tktlJziASBiIaGhRF4srGnK4MrvXIWe07dCr7CKP3dVvFp7PCQ/exec';
+  const url = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
   const params = `?email=${encodeURIComponent(email)}&id=${id}&priority=${priority}&handler=${encodeURIComponent(handler)}`;
   fetch(url + params)
     .then(res=>res.text())
