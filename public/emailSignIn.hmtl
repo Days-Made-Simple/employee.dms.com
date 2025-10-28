@@ -129,7 +129,12 @@
     let email = window.localStorage.getItem('emailForSignIn');
     if(!email) email = prompt('Enter your email to confirm sign-in');
 
-    auth.signInWithEmailLink(email, window.location.href)
+ 
+const actionCodeSettings = {
+     url: 'https://employees.daysmadesimple.com/public/emailsignin.html',
+     handleCodeInApp: true
+};
+    auth.signInWithEmailLink(email, actionCodeSettings)
       .then(()=> {
         window.localStorage.removeItem('emailForSignIn');
         status.textContent = '✅ Sign-in successful! Redirecting...';
