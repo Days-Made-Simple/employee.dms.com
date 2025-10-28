@@ -99,6 +99,7 @@
         <div class="actions-row">
           <a class="link" href="/resetpw">Forgot password?</a>
           <button class="btn" type="submit">Sign in</button>
+          </div>
         <span class="link" onclick="sendSignInLink()">Or, Sign in with Email</span>
       </div>
 
@@ -139,7 +140,7 @@
       if(!email){ alert('Enter your email first'); return; }
 
       const actionCodeSettings = {
-        url: window.location.origin + '/emailSignIn',
+        url: window.location.origin + '/dashboard',
         handleCodeInApp: true
       };
 
