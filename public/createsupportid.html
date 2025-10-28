@@ -1,38 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Create Support ID</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Customer Support ID</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  body { font-family:'Inter', sans-serif; margin:0; background:#f5f6fa; color:#111827; overflow-x:hidden; }
-  header { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#fff; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.12); width:85%; max-width:1000px; z-index:1000; }
-  .nav-title { font-size:16px; font-weight:600; color:#111827; }
-  header button { border:none; padding:6px 14px; border-radius:10px; font-weight:600; cursor:pointer; transition:.2s; color:#fff; }
-  .back-btn { background:#6366f1; margin-right:12px; } .back-btn:hover { background:#4f46e5; }
-  .logout-btn { background:#ef4444; } .logout-btn:hover { background:#dc2626; }
-
-  .page { margin:100px auto 40px; max-width:800px; padding:0 16px; }
-  .card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 4px 12px rgba(0,0,0,0.05); margin-bottom:20px; }
-  .card h2 { font-size:20px; margin:0 0 12px 0; color:#111827; }
-  .form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; align-items:flex-end; }
-  label { display:block; font-size:13px; color:#374151; margin-bottom:6px; }
-  input[type="text"], input[type="email"], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px; box-sizing:border-box; }
-  input[readonly] { background:#f3f4f6; color:#374151; border:1px dashed #d1d5db; }
-  .controls { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
-  .btn { padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:14px; }
-  .btn-primary { background:#6366f1; color:#fff; } .btn-primary:hover { background:#4f46e5; }
-  .btn-secondary { background:#10b981; color:#fff; } .btn-secondary:hover { background:#059669; }
-  .btn-ghost { background:#fff; color:#374151; border:1px solid #e5e7eb; } .btn-ghost:hover { box-shadow:0 6px 18px rgba(0,0,0,0.06); }
-  .note { color:#6b7280; font-size:13px; margin-top:8px; }
-  .success { margin-top:12px; padding:12px; border-radius:8px; background:#ecfeff; color:#065f46; border:1px solid #bbf7d0; }
+body { font-family: 'Inter', sans-serif; margin:0; background:#f5f6fa; }
+header { position: fixed; top:16px; left:50%; transform:translateX(-50%); background:#fff; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.12); width:85%; max-width:1000px; z-index:1000; }
+.nav-title { font-weight:600; font-size:16px; }
+header button { background:#ef4444; border:none; padding:6px 14px; color:#fff; border-radius:10px; cursor:pointer; font-weight:600; }
+.container { margin:100px auto 40px; padding:0 16px; max-width:1000px; display:flex; justify-content:center; }
+.card { background:#fff; border-radius:16px; padding:24px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.05); width:400px; }
+.card h2 { font-size:20px; margin-bottom:16px; }
+input, select { width:100%; padding:8px 12px; margin:8px 0 16px 0; border-radius:8px; border:1px solid #d1d5db; font-size:15px; }
+input[readonly]{background:#f3f4f6;}
+button.btn { padding:12px 20px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:15px; transition:0.2s; }
+button.btn-primary{background:#6366f1;color:#fff;}
+button.btn-primary:hover{background:#4f46e5;}
 </style>
 </head>
 <body>
 
 <header>
-  <div style="display:flex; align-items:center;">
-    <button class="back-btn" onclick="goBack()">← Back</button>
-    <span class="nav-title">Create Support ID</span>
-  </
+  <button onclick="goBack()">← Back</button>
+  <span class="nav-title">Create Customer Support ID</span>
+  <button onclick="logoutUser()">Logout</button>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Customer Information</h2>
+    <label>Customer ID</label>
+    <input type="text" id="customerId" readonly>
+    <button class="btn" onclick="generateID()">Generate ID</button>
+
+    <label>Customer Email</label>
+    <input type="email" id="customerEmail">
+
+    <label>Priority</label>
+    <select id="priority">
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+
+    <label>Handler Name</label>
+    <input type="text" id="handlerName">
+
+    <button class="btn btn-primary" onclick="submitForm()">Submit</button>
+    <div id="message" style="margin-top:12px;color:green;"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC6ReZ9JiKAhVwXLUwgzRRsk2Daw3pRli8",
+  authDomain: "daysmadesimple-admin.firebaseapp.com",
+  projectId: "daysmadesimple-admin",
+  storageBucket: "daysmadesimple-admin.firebasestorage.app",
+  messagingSenderId: "165327565681",
+  appId: "1:165327565681:web:e28364ebb3cb1d9a683cd0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+
+// 🔐 Protect page
+auth.onAuthStateChanged(user => {
+  if(!user) window.location.href='/';
+  else currentUser = user;
+});
+
+function logoutUser(){ auth.signOut().then(()=>window.location.href='/'); }
+function goBack(){ window.location.href='/customerserviceshome.html'; }
+
+function generateID(){
+  const num = Math.floor(Math.random() * 900000000) + 100000000;
+  document.getElementById('customerId').value = '#' + num;
+}
+
+function submitForm(){
+  const id = document.getElementById('customerId').value;
+  const email = document.getElementById('customerEmail').value.trim();
+  const priority = document.getElementById('priority').value;
+  const handler = document.getElementById('handlerName').value.trim();
+
+  if(!id || !email || !priority || !handler){ alert('Please fill all fields'); return; }
+
+  db.collection('customers').doc(id).set({id,email,priority,handler,createdAt: firebase.firestore.FieldValue.serverTimestamp()})
+    .then(()=>sendEmail(id,email,priority,handler))
+    .catch(err=>alert(err.message));
+}
+
+// 🔹 Call Google Apps Script
+function sendEmail(id,email,priority,handler){
+  const url = 'https://script.google.com/macros/s/AKfycbzeyu_TlpP0LPd1O2tktlJziASBiIaGhRF4srGnK4MrvXIWe07dCr7CKP3dVvFp7PCQ/exec';
+  const params = `?email=${encodeURIComponent(email)}&id=${id}&priority=${priority}&handler=${encodeURIComponent(handler)}`;
+  fetch(url + params)
+    .then(res=>res.text())
+    .then(()=>{ document.getElementById('message').textContent = `✅ Email sent to ${email}`; })
+    .catch(err=>alert('❌ Failed to send email: ' + err));
+}
+</script>
+</body>
+</html>
