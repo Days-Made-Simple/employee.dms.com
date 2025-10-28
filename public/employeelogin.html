@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sign In</title>
   <style>
-    /* Reset */
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-
     body{
       font-family: Inter, Roboto, -apple-system, "Segoe UI", "Helvetica Neue", Arial;
-      background:#ffffff; /* pure white background */
+      background:#ffffff;
       color:#111827;
       -webkit-font-smoothing:antialiased;
       display:flex;
@@ -26,7 +24,7 @@
       border-radius:12px;
       box-shadow:0 8px 30px rgba(17,24,39,0.06);
       overflow:hidden;
-      background:linear-gradient(#ffffff,#ffffff);
+      background:#fff;
     }
 
     .header{
@@ -50,16 +48,11 @@
       font-size:16px;
     }
 
-    .brand {
-      font-size:18px;
-      font-weight:600;
-    }
+    .brand { font-size:18px; font-weight:600; }
 
-    .form{
-      padding:28px;
-    }
+    .form{ padding:28px; display:flex; flex-direction:column; gap:12px; }
 
-    label{display:block;font-size:13px;margin-bottom:8px;color:#374151}
+    label{display:block;font-size:13px;color:#374151;margin-bottom:4px;}
     input[type="text"], input[type="password"]{
       width:100%;
       padding:12px 14px;
@@ -69,38 +62,22 @@
       outline:none;
       background:#fff;
     }
-    input[type="text"]:focus, input[type="password"]:focus{box-shadow:0 0 0 4px rgba(99,102,241,0.06);border-color:#6366f1}
+    input:focus{box-shadow:0 0 0 4px rgba(99,102,241,0.06);border-color:#6366f1}
 
-    .actions{margin-top:18px;display:flex;align-items:center;justify-content:space-between}
-    .btn{
-      background:#111827;
-      color:#fff;
-      padding:10px 14px;
-      border-radius:8px;
-      border:none;
-      font-weight:600;
-      cursor:pointer;
-    }
+    .actions{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+    .actions-row{ display:flex; justify-content:space-between; align-items:center; }
 
-    .link{font-size:13px;color:#4b5563;text-decoration:none}
+    .btn{ background:#111827; color:#fff; padding:10px 14px; border-radius:8px; border:none; font-weight:600; cursor:pointer; }
 
+    .link{font-size:13px;color:#4b5563;text-decoration:none;cursor:pointer;}
     .small-note{font-size:12px;color:#6b7280;margin-top:12px}
-
-    .footer{
-      padding:12px 20px;
-      border-top:1px solid rgba(15,23,42,0.04);
-      font-size:12px;
-      color:#6b7280;
-      text-align:center;
-    }
+    .footer{padding:12px 20px;border-top:1px solid rgba(15,23,42,0.04);font-size:12px;color:#6b7280;text-align:center;margin-top:12px;}
   </style>
 </head>
 <body>
-  <div class="container" role="main" aria-labelledby="signinTitle">
+  <div class="container" role="main">
     <div class="header">
-      <div class="logo">
-  <img src="logo.png" alt="Company Logo" style="width:100%;height:100%;object-fit:contain;border-radius:6px;">
-</div>
+      <div class="logo"><img src="logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:6px;"></div>
       <div>
         <div class="brand">Days Made Simple Employee Portal</div>
         <div style="font-size:12px;color:#6b7280">Securely sign in to your account</div>
@@ -109,18 +86,21 @@
 
     <form class="form" onsubmit="event.preventDefault();loginUser()">
       <div>
-        <label for="username">Username</label>
-        <input id="username" name="username" type="text" inputmode="text" autocomplete="username" placeholder="example@daysmadesimple.com" required />
+        <label for="username">Username / Email</label>
+        <input id="username" name="username" type="text" inputmode="email" autocomplete="username" placeholder="example@daysmadesimple.com" required />
       </div>
 
-      <div style="margin-top:14px">
+      <div>
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" />
       </div>
 
       <div class="actions">
-        <a class="link" href="/resetpw">Forgot password?</a>
-        <button class="btn" type="submit">Sign in</button>
+        <div class="actions-row">
+          <a class="link" href="/resetpw">Forgot password?</a>
+          <button class="btn" type="submit">Sign in</button>
+        </div>
+        <span class="link" onclick="sendSignInLink()">— Or, Sign in with Email</span>
       </div>
 
       <div class="small-note">By signing in you agree to the terms of use.</div>
@@ -131,6 +111,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC6ReZ9JiKAhVwXLUwgzRRsk2Daw3pRli8",
@@ -141,20 +122,34 @@
       appId: "1:165327565681:web:e28364ebb3cb1d9a683cd0"
     };
     firebase.initializeApp(firebaseConfig);
-
     const auth = firebase.auth();
 
+    // Password login
     function loginUser(){
       const email = document.getElementById('username').value;
       const password = document.getElementById('password').value;
+      if(!password){ alert("Password empty! Use 'Sign in with Email' for passwordless."); return; }
       auth.signInWithEmailAndPassword(email,password)
-      .then(()=>{
-        // Redirect to protected dashboard
-        window.location.href = '/dashboard';
-      })
-      .catch(err=>{
-        alert('❌ '+err.message);
-      });
+        .then(()=> window.location.href='/dashboard')
+        .catch(err=> alert('❌ '+err.message));
+    }
+
+    // Send magic link to email
+    function sendSignInLink(){
+      const email = document.getElementById('username').value.trim();
+      if(!email){ alert('Enter your email first'); return; }
+
+      const actionCodeSettings = {
+        url: window.location.origin + '/emailSignIn',
+        handleCodeInApp: true
+      };
+
+      auth.sendSignInLinkToEmail(email, actionCodeSettings)
+        .then(()=>{
+          window.localStorage.setItem('emailForSignIn', email);
+          alert('✅ Email sent! Check your inbox to complete sign-in.');
+        })
+        .catch(err=>alert('❌ '+err.message));
     }
   </script>
 </body>
