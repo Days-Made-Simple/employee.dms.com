@@ -225,7 +225,7 @@ function submitForm(){
 
 // 🔹 Call Google Apps Script
 function sendEmail(id,email,priority,handler){
-  const url = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+  const url = 'https://script.google.com/macros/s/AKfycbyu52gZNFHqlWFRg9FjdmPoudOu7jjRl1smogsWj_ntzL-fL8Bl2TMSHjIHnmiJoZNX/exec';
   const params = `?email=${encodeURIComponent(email)}&id=${id}&priority=${priority}&handler=${encodeURIComponent(handler)}`;
   fetch(url + params)
     .then(res=>res.text())
