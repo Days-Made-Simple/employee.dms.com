@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    margin:0;
+    background:#f5f6fa;
+    color:#111827;
+    overflow-x:hidden;
+  }
+
+  header {
+    position: fixed;
+    top:16px; left:50%;
+    transform:translateX(-50%);
+    background:#fff;
+    padding:10px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-radius:14px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.12);
+    width:85%; max-width:1000px;
+    z-index:1000;
+  }
+
+  .nav-title { font-size:16px; font-weight:600; color:#111827; }
+  header button { border:none; padding:6px 14px; border-radius:10px; font-weight:600; cursor:pointer; transition:.2s; color:#fff; }
+  header button:hover { opacity:.9; }
+  .back-btn { background:#6366f1; margin-right:12px; }
+  .back-btn:hover { background:#4f46e5; }
+  .logout-btn { background:#ef4444; }
+  .logout-btn:hover { background:#dc2626; }
+
+  main { margin:100px auto 40px; max-width:1000px; padding:0 16px; display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+
+  .card {
+    flex:1 1 250px;
+    max-width:300px;
+    background:#fff;
+    border-radius:16px;
+    padding:24px;
+    text-align:center;
+    box-shadow:0 4px 12px rgba(0,0,0,0.05);
+    cursor:pointer;
+    transition:0.2s;
+  }
+  .card:hover { box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+
+  .card h2 { margin-bottom:12px; font-size:18px; color:#111827; }
+  .card p { color:#6b7280; font-size:14px; }
+  input[type="text"], input[type="email"] { width:100%; padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; font-size:14px; }
+  button.submit-btn { margin-top:12px; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background:#6366f1; color:#fff; }
+  button.submit-btn:hover { background:#4f46e5; }
+  button.create-btn { margin-top:12px; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:600; background:#6366f1; color:#fff; }
+  button.create-btn:hover { background:#4f46e5; }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; align-items:center;">
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <span class="nav-title">Customer Services</span>
+  </div>
+  <button class="logout-btn" onclick="logoutUser()">Logout</button>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Create Customer ID</h2>
+    <p>Generate a new support ID for a customer.</p>
+    <button class="create-btn" onclick="goToCreateID()">Create ID</button>
+  </div>
+
+  <div class="card">
+    <h2>Begin Customer Chat</h2>
+    <p>Placeholder for live chat functionality.</p>
+  </div>
+
+  <div class="card">
+    <h2>Obtain Customer Status</h2>
+    <input type="email" id="statusEmail" placeholder="Enter customer email">
+    <button class="submit-btn" onclick="checkStatus()">Check Status</button>
+    <p id="statusResult"></p>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6ReZ9JiKAhVwXLUwgzRRsk2Daw3pRli8",
+    authDomain: "daysmadesimple-admin.firebaseapp.com",
+    projectId: "daysmadesimple-admin",
+    storageBucket: "daysmadesimple-admin.firebasestorage.app",
+    messagingSenderId: "165327565681",
+    appId: "1:165327565681:web:e28364ebb3cb1d9a683cd0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let currentUser = null;
+
+  // 🔐 Page protection
+  auth.onAuthStateChanged(user => {
+    if(!user) window.location.href = '/';
+    else { currentUser = user; }
+  });
+
+  function logoutUser(){ auth.signOut().then(()=>window.location.href='/'); }
+  function goBack(){ window.history.back(); }
+  function goToCreateID(){ window.location.href='createsupportid.html'; }
+
+  function checkStatus() {
+    const email = document.getElementById('statusEmail').value.trim();
+    if(!email){ alert('Enter a customer email'); return; }
+
+    // Placeholder: fetch customer status from Firestore
+    db.collection('customers').where('email','==',email).get()
+      .then(snapshot=>{
+        if(snapshot.empty){ document.getElementById('statusResult').textContent='No customer found.'; return; }
+        snapshot.forEach(doc=>{
+          const data = doc.data();
+          document.getElementById('statusResult').textContent = `Customer ID: ${data.customerId || '—'}, Priority: ${data.priority || '—'}`;
+        });
+      })
+      .catch(err=>{ console.error(err); alert('Error fetching status'); });
+  }
+</script>
+</body>
