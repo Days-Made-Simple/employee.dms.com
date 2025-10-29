@@ -171,14 +171,30 @@ function selectUser(uid, name){
   });
 }
 
-// Append a single message bubble
-function appendMessage(msg){
+function loadMessages() {
   const messageArea = document.getElementById('messageArea');
-  const div = document.createElement('div');
-  div.className = 'message ' + (msg.sender===currentUser.uid?'sent':'received');
-  div.textContent = msg.text;
-  messageArea.appendChild(div);
-  messageArea.scrollTop = messageArea.scrollHeight;
+
+  if (unsubscribeMessages) unsubscribeMessages(); // clean previous listener
+
+  unsubscribeMessages = db.collection('messages')
+    .where('members', 'array-contains', currentUser.uid)
+    .orderBy('timestamp')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const msg = change.doc.data();
+
+          // show messages only between currentUser and selectedUser
+          if (
+            selectedUser && 
+            ((msg.sender === currentUser.uid && msg.receiver === selectedUser) ||
+             (msg.sender === selectedUser && msg.receiver === currentUser.uid))
+          ) {
+            appendMessage(msg);
+          }
+        }
+      });
+    });
 }
 
 // Send message
