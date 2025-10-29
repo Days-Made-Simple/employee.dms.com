@@ -139,17 +139,20 @@ function selectUser(uid, name){
 
 // Load messages
 function loadMessages(){
+  const messageArea = document.getElementById('messageArea');
+  messageArea.innerHTML = ''; // Clear only when switching user
+
+  if(messagesUnsub) messagesUnsub(); // unsubscribe previous listener
+
   messagesUnsub = db.collection('messages')
     .where('members', 'array-contains', currentUser.uid)
     .orderBy('timestamp', 'asc')
     .onSnapshot(snapshot => {
-      const messageArea = document.getElementById('messageArea');
-
       snapshot.docChanges().forEach(change => {
         if(change.type === 'added'){
           const msg = change.doc.data();
-          if((msg.sender === currentUser.uid && msg.receiver === selectedUser) ||
-             (msg.sender === selectedUser && msg.receiver === currentUser.uid)){
+          if ((msg.sender === currentUser.uid && msg.receiver === selectedUser) ||
+              (msg.sender === selectedUser && msg.receiver === currentUser.uid)){
             const div = document.createElement('div');
             div.className = `message ${msg.sender === currentUser.uid ? 'sent' : 'received'}`;
             div.textContent = msg.text;
