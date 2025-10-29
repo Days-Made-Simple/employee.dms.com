@@ -65,9 +65,20 @@
   .card h2 { font-size: 20px; margin-bottom: 16px; color: #111827; }
 
   /* Profile */
-  #profilePic { 
-    width: 100px; height: 100px; border-radius: 50%; object-fit: cover; 
-    margin: 0 auto 16px auto; display: block; border: 2px solid #e5e7eb;
+  #profilePic, #profileInitials { 
+    width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 16px auto; display: block; border: 2px solid #e5e7eb;
+    object-fit: cover; 
+  }
+
+  #profileInitials {
+    display: none;
+    background: #6366f1; 
+    color: white; 
+    font-weight: 600; 
+    font-size: 36px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
   }
 
   .field { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
@@ -109,7 +120,8 @@
   <!-- Profile Card -->
   <div class="card">
     <h2>Profile Information</h2>
-    <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
+    <img id="profilePic" alt="Profile Picture">
+    <div id="profileInitials"></div>
     <div>
       <label class="upload-btn" id="uploadBtnLabel">Choose File
         <input type="file" id="picInput">
@@ -176,17 +188,40 @@ auth.onAuthStateChanged(user => {
     db.collection('users').doc(user.uid).get().then(doc => {
       if(doc.exists){
         const data = doc.data();
-        document.getElementById('name').value = data.name || '';
+        const name = data.name || '';
+        const profilePic = data.profilePic || '';
+
+        document.getElementById('name').value = name;
         document.getElementById('employeeId').value = data.employeeId || '';
-        document.getElementById('profilePic').src = data.profilePic || 'https://via.placeholder.com/100';
+
+        if(profilePic){
+          const imgEl = document.getElementById('profilePic');
+          imgEl.src = profilePic;
+          imgEl.style.display = 'block';
+          document.getElementById('profileInitials').style.display = 'none';
+          imgEl.onerror = () => showInitials(name);
+        } else showInitials(name);
       }
     });
   }
 });
 
+function showInitials(name){
+  const initialsEl = document.getElementById('profileInitials');
+  const imgEl = document.getElementById('profilePic');
+  imgEl.style.display = 'none';
+  initialsEl.style.display = 'flex';
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+  initialsEl.textContent = initials || '?';
+}
+
+// Update initials if name changes
 document.getElementById('name').addEventListener('input', () => {
   nameChanged = true;
   toggleSaveBtn();
+  const name = document.getElementById('name').value;
+  const imgEl = document.getElementById('profilePic');
+  if(imgEl.style.display === 'none') showInitials(name);
 });
 
 function toggleSaveBtn() {
@@ -207,6 +242,8 @@ document.getElementById('picInput').addEventListener('change', e => {
   storageRef.put(file).then(snapshot => {
     snapshot.ref.getDownloadURL().then(url => {
       document.getElementById('profilePic').src = url;
+      document.getElementById('profilePic').style.display = 'block';
+      document.getElementById('profileInitials').style.display = 'none';
       profilePicChanged = true;
       toggleSaveBtn();
     });
@@ -216,19 +253,26 @@ document.getElementById('picInput').addEventListener('change', e => {
 // Remove profile picture
 removeBtn.addEventListener('click', () => {
   const storageRef = storage.ref('profilePics/' + currentUser.uid);
-  storageRef.delete().catch(()=>{}); // ignore if missing
-  document.getElementById('profilePic').src = 'https://via.placeholder.com/100';
+  storageRef.delete().catch(()=>{});
+  showInitials(document.getElementById('name').value);
   profilePicChanged = true;
   toggleSaveBtn();
 });
 
 function saveProfile(){
   const name = document.getElementById('name').value;
-  const profilePic = document.getElementById('profilePic').src;
+  const profilePic = document.getElementById('profilePic').style.display === 'block' ? document.getElementById('profilePic').src : '';
   db.collection('users').doc(currentUser.uid).set({name, profilePic},{merge:true})
-    .then(()=>{ alert('✅ Profile updated!'); profilePicChanged=false; nameChanged=false; toggleSaveBtn(); })
+    .then(()=>{ 
+      alert('✅ Profile updated!'); 
+      profilePicChanged=false; 
+      nameChanged=false; 
+      toggleSaveBtn(); 
+    })
     .catch(err=>alert('❌ '+err.message));
 }
+
+saveBtn.addEventListener('click', saveProfile);
 
 function createSupportTicket(){
   const subject = encodeURIComponent("Support Ticket - " + currentUser.email);
