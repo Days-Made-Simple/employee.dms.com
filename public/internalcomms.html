@@ -5,37 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Internal Communications</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Inter, Arial, sans-serif; background: #f9fafb; display:flex; height:100vh; overflow:hidden; }
-.sidebar { width: 280px; background:#1f2937; color:white; display:flex; flex-direction:column; }
-.sidebar-header { padding:20px; font-size:18px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); }
-.user-list { flex:1; overflow-y:auto; }
-.user-item { display:flex; align-items:center; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); }
-.user-item:hover { background:#374151; }
-.avatar { width:36px; height:36px; border-radius:50%; margin-right:12px; background:#6366f1; color:white; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; }
-.chat-section { flex:1; display:flex; flex-direction:column; background:white; }
-.chat-header { padding:20px; border-bottom:1px solid #e5e7eb; font-weight:600; background:#f3f4f6; }
-.message-area { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; }
-.message { max-width:60%; margin-bottom:12px; padding:10px 14px; border-radius:10px; font-size:14px; line-height:1.4; word-break: break-word; }
-.message.sent { background:#6366f1; color:white; margin-left:auto; }
-.message.received { background:#e5e7eb; color:#111827; margin-right:auto; }
-.chat-input { display:flex; padding:16px; border-top:1px solid #e5e7eb; }
-.chat-input input { flex:1; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; margin-right:10px; }
-.chat-input button { background:#6366f1; color:white; padding:12px 18px; border:none; border-radius:8px; cursor:pointer; }
-.chat-input button:hover { background:#4f46e5; }
-.online-indicator { width:10px; height:10px; border-radius:50%; margin-left:auto; }
-.online { background:green; }
-.offline { background:red; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Inter, Arial, sans-serif; background: #f9fafb; display:flex; height:100vh; overflow:hidden; }
+  .sidebar { width: 280px; background:#1f2937; color:white; display:flex; flex-direction:column; }
+  .sidebar-header { padding:20px; font-size:18px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .user-list { flex:1; overflow-y:auto; }
+  .user-item { display:flex; align-items:center; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .user-item:hover { background:#374151; }
+  .avatar { width:36px; height:36px; border-radius:50%; margin-right:12px; background:#6366f1; color:white; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .online { box-shadow: 0 0 0 2px green inset; }
+  .offline { box-shadow: 0 0 0 2px red inset; }
+  .chat-section { flex:1; display:flex; flex-direction:column; background:white; }
+  .chat-header { padding:20px; border-bottom:1px solid #e5e7eb; font-weight:600; background:#f3f4f6; display:flex; justify-content:space-between; align-items:center; }
+  #typingIndicator { font-weight:400; font-size:14px; color:#6b7280; }
+  .message-area { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; }
+  .message { max-width:60%; margin-bottom:12px; padding:10px 14px; border-radius:10px; font-size:14px; line-height:1.4; word-break: break-word; }
+  .message.sent { background:#6366f1; color:white; align-self:flex-end; }
+  .message.received { background:#e5e7eb; color:#111827; align-self:flex-start; }
+  .chat-input { display:flex; padding:16px; border-top:1px solid #e5e7eb; }
+  .chat-input input { flex:1; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; margin-right:10px; }
+  .chat-input button { background:#6366f1; color:white; padding:12px 18px; border:none; border-radius:8px; cursor:pointer; }
+  .chat-input button:hover { background:#4f46e5; }
 </style>
 </head>
 <body>
+
 <div class="sidebar">
   <div class="sidebar-header">Team Chat</div>
   <div class="user-list" id="userList"></div>
 </div>
 
 <div class="chat-section">
-  <div class="chat-header" id="chatHeader">Select a user to start chatting</div>
+  <div class="chat-header">
+    <span id="chatHeader">Select a user to start chatting</span>
+    <span id="typingIndicator"></span>
+  </div>
   <div class="message-area" id="messageArea"></div>
   <div class="chat-input">
     <input type="text" id="messageInput" placeholder="Type a message..." disabled />
@@ -62,8 +66,11 @@ const auth = firebase.auth();
 
 let currentUser = null;
 let selectedUser = null;
-let unsubscribeMessages = null;
+let messagesListener = null;
+let typingRef = null;
+let typingTimeout = null;
 
+// Auth
 auth.onAuthStateChanged(user => {
   if(!user) window.location.href = "login.html";
   else {
@@ -72,42 +79,43 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// Load all users except current
-function loadUsers() {
+// Load Users
+function loadUsers(){
   db.collection('users').onSnapshot(snapshot => {
     const userList = document.getElementById('userList');
     userList.innerHTML = '';
     snapshot.forEach(doc => {
-      if(doc.id !== currentUser.uid){
-        const data = doc.data();
-        const div = document.createElement('div');
-        div.className = 'user-item';
+      if(doc.id === currentUser.uid) return;
+      const user = doc.data();
+      const div = document.createElement('div');
+      div.className = 'user-item';
+      div.onclick = () => selectUser(doc.id, user.name);
 
-        // Avatar fallback
-        let avatarEl;
-        if(data.profilePic){
-          avatarEl = document.createElement('img');
-          avatarEl.src = data.profilePic;
-          avatarEl.className = 'avatar';
-          avatarEl.onerror = () => { avatarEl.replaceWith(createInitials(data.name)); };
-        } else avatarEl = createInitials(data.name);
-        div.appendChild(avatarEl);
+      // Avatar
+      let avatarEl;
+      if(user.profilePic){
+        avatarEl = document.createElement('img');
+        avatarEl.src = user.profilePic;
+        avatarEl.className = 'avatar';
+        avatarEl.onerror = () => { avatarEl.replaceWith(createInitials(user.name)); };
+      } else avatarEl = createInitials(user.name);
 
-        const span = document.createElement('span');
-        span.textContent = data.name || 'Unknown';
-        div.appendChild(span);
+      // Online indicator
+      const onlineIndicator = document.createElement('div');
+      onlineIndicator.className = 'avatar ' + (user.online?'online':'offline');
+      onlineIndicator.style.marginRight = '12px';
+      onlineIndicator.textContent = avatarEl.textContent || '';
+      div.appendChild(onlineIndicator);
 
-        const online = document.createElement('div');
-        online.className = 'online-indicator '+(data.online ? 'online' : 'offline');
-        div.appendChild(online);
-
-        div.onclick = () => selectUser(doc.id, data.name);
-        userList.appendChild(div);
-      }
+      const span = document.createElement('span');
+      span.textContent = user.name || 'Unknown';
+      div.appendChild(span);
+      userList.appendChild(div);
     });
   });
 }
 
+// Create initials fallback
 function createInitials(name){
   const initials = name ? name.split(' ').map(n=>n[0]).join('').toUpperCase() : '?';
   const el = document.createElement('div');
@@ -116,68 +124,44 @@ function createInitials(name){
   return el;
 }
 
-function selectUser(uid, name) {
+// Select user & listen messages
+function selectUser(uid, name){
   selectedUser = uid;
   document.getElementById('chatHeader').textContent = `Chat with ${name}`;
   document.getElementById('messageInput').disabled = false;
   document.getElementById('sendBtn').disabled = false;
 
-  // Unsubscribe previous listener
-  if (unsubscribeMessages) unsubscribeMessages();
+  const messageArea = document.getElementById('messageArea');
 
-  // Listen for messages in real-time
-  unsubscribeMessages = db.collection('messages')
+  if(messagesListener) messagesListener(); // unsubscribe previous
+
+  messagesListener = db.collection('messages')
     .where('members', 'array-contains', currentUser.uid)
-    .orderBy('timestamp', 'asc')
+    .orderBy('timestamp')
     .onSnapshot(snapshot => {
-      const messageArea = document.getElementById('messageArea');
-      messageArea.innerHTML = ''; // clear once per snapshot
-
-      snapshot.forEach(doc => {
-        const msg = doc.data();
-        if ((msg.sender === currentUser.uid && msg.receiver === selectedUser) ||
-            (msg.sender === selectedUser && msg.receiver === currentUser.uid)) {
-          const div = document.createElement('div');
-          div.className = `message ${msg.sender === currentUser.uid ? 'sent' : 'received'}`;
-          div.textContent = msg.text;
-          messageArea.appendChild(div);
-        }
-      });
-
-      // Scroll to bottom
-      messageArea.scrollTop = messageArea.scrollHeight;
-    });
-  loadMessages();
-}
-
-let displayedMessages = new Set(); // track messages already rendered
-
-function loadMessages() {
-  db.collection('messages')
-    .where('members', 'array-contains', currentUser.uid)
-    .orderBy('timestamp', 'asc')
-    .onSnapshot(snapshot => {
-      const messageArea = document.getElementById('messageArea');
-
-      snapshot.docChanges().forEach(change => {
-        if (change.type === 'added') {
+      snapshot.docChanges().forEach(change=>{
+        if(change.type === 'added'){
           const msg = change.doc.data();
-          if ((msg.sender === currentUser.uid && msg.receiver === selectedUser) ||
-              (msg.sender === selectedUser && msg.receiver === currentUser.uid)) {
-
-            // avoid duplicates
-            if (!displayedMessages.has(change.doc.id)) {
-              displayedMessages.add(change.doc.id);
-              const div = document.createElement('div');
-              div.className = `message ${msg.sender === currentUser.uid ? 'sent' : 'received'}`;
-              div.textContent = msg.text;
-              messageArea.appendChild(div);
-              messageArea.scrollTop = messageArea.scrollHeight;
-            }
+          if((msg.sender===currentUser.uid && msg.receiver===selectedUser) ||
+             (msg.sender===selectedUser && msg.receiver===currentUser.uid)){
+            const div = document.createElement('div');
+            div.className = 'message ' + (msg.sender===currentUser.uid ? 'sent':'received');
+            div.textContent = msg.text;
+            messageArea.appendChild(div);
+            messageArea.scrollTop = messageArea.scrollHeight;
           }
         }
       });
     });
+
+  // Typing indicator
+  if(typingRef) typingRef();
+  typingRef = db.collection('typing').doc(selectedUser).onSnapshot(doc=>{
+    if(doc.exists){
+      const isTyping = doc.data().isTyping;
+      document.getElementById('typingIndicator').textContent = isTyping ? 'Typing...' : '';
+    }
+  });
 }
 
 // Send message
@@ -194,8 +178,17 @@ document.getElementById('sendBtn').onclick = async () => {
   });
 
   document.getElementById('messageInput').value = '';
+  updateTyping(false);
 };
-  
+
+// Typing indicator
+const messageInput = document.getElementById('messageInput');
+messageInput.addEventListener('input', ()=>{ updateTyping(messageInput.value.length>0); });
+function updateTyping(isTyping){
+  db.collection('typing').doc(currentUser.uid).set({isTyping});
+  if(typingTimeout) clearTimeout(typingTimeout);
+  if(isTyping) typingTimeout = setTimeout(()=>updateTyping(false), 3000);
+}
 </script>
 </body>
 </html>
