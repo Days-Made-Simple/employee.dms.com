@@ -125,24 +125,23 @@ function createInitials(name){
   return el;
 }
 
-// Select user
+let messagesUnsub = null; // track active listener
+
 function selectUser(uid, name){
   selectedUser = uid;
-  document.getElementById('chatHeader').childNodes[0].nodeValue = `Chat with ${name} `;
+  document.getElementById('chatHeader').textContent = `Chat with ${name}`;
   document.getElementById('messageInput').disabled = false;
   document.getElementById('sendBtn').disabled = false;
-  if(messagesUnsub) messagesUnsub(); // unsubscribe previous
+
+  // unsubscribe previous listener if any
+  if(messagesUnsub) messagesUnsub();
+
   loadMessages();
-  if(typingUnsub) typingUnsub();
-  listenTyping();
 }
 
-// Load messages
 function loadMessages(){
   const messageArea = document.getElementById('messageArea');
-  messageArea.innerHTML = ''; // Clear only when switching user
-
-  if(messagesUnsub) messagesUnsub(); // unsubscribe previous listener
+  messageArea.innerHTML = ''; // clear only when switching user
 
   messagesUnsub = db.collection('messages')
     .where('members', 'array-contains', currentUser.uid)
@@ -164,11 +163,10 @@ function loadMessages(){
     });
 }
 
-// Send message
 document.getElementById('sendBtn').onclick = async () => {
-  const text = document.getElementById('messageInput').value;
-  if(!text.trim()) return;
-  document.getElementById('messageInput').value = '';
+  const text = document.getElementById('messageInput').value.trim();
+  if(!text || !selectedUser) return;
+
   await db.collection('messages').add({
     sender: currentUser.uid,
     receiver: selectedUser,
@@ -176,6 +174,7 @@ document.getElementById('sendBtn').onclick = async () => {
     text,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
+  document.getElementById('messageInput').value = '';
 };
 
 // Typing indicator
