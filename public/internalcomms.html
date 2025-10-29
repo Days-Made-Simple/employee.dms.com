@@ -1,28 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Internal Communications</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Inter, Arial, sans-serif; background: #f9fafb; display:flex; height:100vh; overflow:hidden; }
-
-  /* Sidebar */
   .sidebar { width: 280px; background:#1f2937; color:white; display:flex; flex-direction:column; }
   .sidebar-header { padding:20px; font-size:18px; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.1); }
   .user-list { flex:1; overflow-y:auto; }
   .user-item { display:flex; align-items:center; padding:12px 16px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05); }
   .user-item:hover { background:#374151; }
-  .user-item img { width:36px; height:36px; border-radius:50%; margin-right:12px; }
-  .user-item span { font-size:14px; flex:1; }
-  .status-dot { width:10px; height:10px; border-radius:50%; margin-right:8px; }
-
-  /* Chat Section */
+  .avatar { width:36px; height:36px; border-radius:50%; margin-right:12px; background:#6366f1; color:white; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; }
   .chat-section { flex:1; display:flex; flex-direction:column; background:white; }
   .chat-header { padding:20px; border-bottom:1px solid #e5e7eb; font-weight:600; background:#f3f4f6; }
   .message-area { flex:1; overflow-y:auto; padding:20px; }
-  .message { max-width:60%; margin-bottom:12px; padding:10px 14px; border-radius:10px; font-size:14px; line-height:1.4; word-wrap: break-word; }
+  .message { max-width:60%; margin-bottom:12px; padding:10px 14px; border-radius:10px; font-size:14px; line-height:1.4; }
   .message.sent { background:#6366f1; color:white; margin-left:auto; }
   .message.received { background:#e5e7eb; color:#111827; }
   .chat-input { display:flex; padding:16px; border-top:1px solid #e5e7eb; }
@@ -32,25 +26,23 @@
 </style>
 </head>
 <body>
-
-<div class="sidebar">
-  <div class="sidebar-header">Team Chat</div>
-  <div class="user-list" id="userList"></div>
-</div>
-
-<div class="chat-section">
-  <div class="chat-header" id="chatHeader">Select a user to start chatting</div>
-  <div class="message-area" id="messageArea"></div>
-  <div class="chat-input">
-    <input type="text" id="messageInput" placeholder="Type a message..." disabled />
-    <button id="sendBtn" disabled>Send</button>
+  <div class="sidebar">
+    <div class="sidebar-header">Team Chat</div>
+    <div class="user-list" id="userList"></div>
   </div>
-</div>
+
+  <div class="chat-section">
+    <div class="chat-header" id="chatHeader">Select a user to start chatting</div>
+    <div class="message-area" id="messageArea"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Type a message..." disabled />
+      <button id="sendBtn" disabled>Send</button>
+    </div>
+  </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyC6ReZ9JiKAhVwXLUwgzRRsk2Daw3pRli8",
@@ -66,42 +58,15 @@ const auth = firebase.auth();
 
 let currentUser = null;
 let selectedUser = null;
-let presenceInterval = null;
 
-// --- Auth and auto-create Firestore user ---
 auth.onAuthStateChanged(async user => {
-  if (!user) {
-    window.location.href = "login.html";
-  } else {
+  if (!user) window.location.href = "login.html";
+  else {
     currentUser = user;
-
-    // Create Firestore doc if not exists
-    const docRef = db.collection('users').doc(user.uid);
-    const docSnap = await docRef.get();
-    if (!docSnap.exists) {
-      await docRef.set({
-        name: user.displayName || user.email.split('@')[0],
-        profilePic: 'https://i.pravatar.cc/150?u=' + user.uid,
-        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    // Update lastActive every 30 seconds
-    updatePresence();
-    presenceInterval = setInterval(updatePresence, 30000);
-
     loadUsers();
   }
 });
 
-// --- Update presence timestamp ---
-function updatePresence() {
-  db.collection('users').doc(currentUser.uid).update({
-    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
-
-// --- Load all other users ---
 function loadUsers() {
   db.collection('users').onSnapshot(snapshot => {
     const userList = document.getElementById('userList');
@@ -109,16 +74,25 @@ function loadUsers() {
     snapshot.forEach(doc => {
       if (doc.id !== currentUser.uid) {
         const user = doc.data();
-        const now = Date.now();
-        const lastActive = user.lastActive ? user.lastActive.toMillis() : 0;
-        const online = now - lastActive < 60000; // online if active within last 60s
-
         const div = document.createElement('div');
         div.className = 'user-item';
-        div.innerHTML = `
-          <div class="status-dot" style="background:${online ? '#22c55e' : '#ef4444'}"></div>
-          <img src="${user.profilePic}" />
-          <span>${user.name}</span>`;
+
+        // Avatar
+        let avatarEl;
+        if(user.profilePic){
+          avatarEl = document.createElement('img');
+          avatarEl.src = user.profilePic;
+          avatarEl.className = 'avatar';
+          avatarEl.onerror = () => { avatarEl.replaceWith(createInitials(user.name)); };
+        } else {
+          avatarEl = createInitials(user.name);
+        }
+
+        div.appendChild(avatarEl);
+        const span = document.createElement('span');
+        span.textContent = user.name || 'Unknown';
+        div.appendChild(span);
+
         div.onclick = () => selectUser(doc.id, user.name);
         userList.appendChild(div);
       }
@@ -126,8 +100,16 @@ function loadUsers() {
   });
 }
 
-// --- Select user to chat with ---
-function selectUser(uid, name) {
+// Create initials element
+function createInitials(name){
+  const initials = name ? name.split(' ').map(n=>n[0]).join('').toUpperCase() : '?';
+  const el = document.createElement('div');
+  el.className = 'avatar';
+  el.textContent = initials;
+  return el;
+}
+
+function selectUser(uid, name){
   selectedUser = uid;
   document.getElementById('chatHeader').textContent = `Chat with ${name}`;
   document.getElementById('messageInput').disabled = false;
@@ -135,16 +117,12 @@ function selectUser(uid, name) {
   loadMessages();
 }
 
-// --- Load messages ---
-let unsubscribeMessages = null;
-function loadMessages() {
-  if (unsubscribeMessages) unsubscribeMessages();
-  const messageArea = document.getElementById('messageArea');
-
-  unsubscribeMessages = db.collection('messages')
+function loadMessages(){
+  db.collection('messages')
     .where('members', 'array-contains', currentUser.uid)
     .orderBy('timestamp')
     .onSnapshot(snapshot => {
+      const messageArea = document.getElementById('messageArea');
       messageArea.innerHTML = '';
       snapshot.forEach(doc => {
         const msg = doc.data();
@@ -160,11 +138,9 @@ function loadMessages() {
     });
 }
 
-// --- Send message ---
 document.getElementById('sendBtn').onclick = async () => {
-  const text = document.getElementById('messageInput').value.trim();
-  if (!text) return;
-
+  const text = document.getElementById('messageInput').value;
+  if (!text.trim()) return;
   await db.collection('messages').add({
     sender: currentUser.uid,
     receiver: selectedUser,
@@ -172,14 +148,8 @@ document.getElementById('sendBtn').onclick = async () => {
     text,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
-
   document.getElementById('messageInput').value = '';
 };
-
-// --- Cleanup interval on unload ---
-window.addEventListener('beforeunload', () => {
-  if (presenceInterval) clearInterval(presenceInterval);
-});
 </script>
 </body>
 </html>
