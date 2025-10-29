@@ -200,7 +200,7 @@ function toggleSaveBtn() {
 }
 
 // Upload profile picture
-document.getElementById('picInput').addEventListener('change', e => {
+document.getElementById('profilePic').addEventListener('change', e => {
   const file = e.target.files[0];
   if(!file) return;
   const storageRef = storage.ref('profilePics/' + currentUser.uid);
