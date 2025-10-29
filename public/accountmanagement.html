@@ -211,21 +211,27 @@
   let currentUser = null;
 
   auth.onAuthStateChanged(user => {
-    if(!user) window.location.href = '/';
-    else {
-      currentUser = user;
-      document.getElementById('email').value = user.email;
-      db.collection('users').doc(user.uid).get().then(doc => {
-        if(doc.exists){
-          document.getElementById('name').value = doc.data().name || '';
-          document.getElementById('employeeId').value = doc.data().employeeId || '';
-          if(doc.data().profilePic){
-            document.getElementById('profilePic').src = doc.data().profilePic;
-          }
-        }
-      });
-    }
-  });
+  if (!user) {
+    window.location.href = '/';
+  } else {
+    currentUser = user;
+    document.getElementById('email').value = user.email;
+
+    // Load profile from Firestore
+    db.collection('users').doc(user.uid).get().then(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById('name').value = data.name || '';
+        document.getElementById('employeeId').value = data.employeeId || '';
+        document.getElementById('profilePic').src = data.profilePic || 'https://via.placeholder.com/100';
+      } else {
+        console.log("⚠️ No user profile found yet.");
+      }
+    }).catch(error => {
+      console.error("❌ Failed to load profile:", error);
+    });
+  }
+});
 
   document.getElementById('picInput').addEventListener('change', e => {
     const file = e.target.files[0];
