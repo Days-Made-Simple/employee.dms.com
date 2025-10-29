@@ -26,19 +26,19 @@
 </style>
 </head>
 <body>
-  <div class="sidebar">
-    <div class="sidebar-header">Team Chat</div>
-    <div class="user-list" id="userList"></div>
-  </div>
+<div class="sidebar">
+  <div class="sidebar-header">Team Chat</div>
+  <div class="user-list" id="userList"></div>
+</div>
 
-  <div class="chat-section">
-    <div class="chat-header" id="chatHeader">Select a user to start chatting</div>
-    <div class="message-area" id="messageArea"></div>
-    <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Type a message..." disabled />
-      <button id="sendBtn" disabled>Send</button>
-    </div>
+<div class="chat-section">
+  <div class="chat-header" id="chatHeader">Select a user to start chatting</div>
+  <div class="message-area" id="messageArea"></div>
+  <div class="chat-input">
+    <input type="text" id="messageInput" placeholder="Type a message..." disabled />
+    <button id="sendBtn" disabled>Send</button>
   </div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -58,8 +58,9 @@ const auth = firebase.auth();
 
 let currentUser = null;
 let selectedUser = null;
+let unsubscribeMessages = null;
 
-auth.onAuthStateChanged(async user => {
+auth.onAuthStateChanged(user => {
   if (!user) window.location.href = "login.html";
   else {
     currentUser = user;
@@ -100,7 +101,6 @@ function loadUsers() {
   });
 }
 
-// Create initials element
 function createInitials(name){
   const initials = name ? name.split(' ').map(n=>n[0]).join('').toUpperCase() : '?';
   const el = document.createElement('div');
@@ -114,11 +114,10 @@ function selectUser(uid, name){
   document.getElementById('chatHeader').textContent = `Chat with ${name}`;
   document.getElementById('messageInput').disabled = false;
   document.getElementById('sendBtn').disabled = false;
-  loadMessages();
-}
 
-function loadMessages(){
-  db.collection('messages')
+  if (unsubscribeMessages) unsubscribeMessages();
+
+  unsubscribeMessages = db.collection('messages')
     .where('members', 'array-contains', currentUser.uid)
     .orderBy('timestamp')
     .onSnapshot(snapshot => {
@@ -139,8 +138,9 @@ function loadMessages(){
 }
 
 document.getElementById('sendBtn').onclick = async () => {
-  const text = document.getElementById('messageInput').value;
-  if (!text.trim()) return;
+  const text = document.getElementById('messageInput').value.trim();
+  if (!text) return;
+
   await db.collection('messages').add({
     sender: currentUser.uid,
     receiver: selectedUser,
@@ -148,6 +148,7 @@ document.getElementById('sendBtn').onclick = async () => {
     text,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
+
   document.getElementById('messageInput').value = '';
 };
 </script>
