@@ -124,6 +124,36 @@ function createInitials(name){
   return el;
 }
 
+function loadMessages() {
+  const messageArea = document.getElementById('messageArea');
+
+  // unsubscribe previous listener
+  if(messagesListener) messagesListener();
+
+  messagesListener = db.collection('messages')
+    .where('members', 'array-contains', currentUser.uid)
+    .orderBy('timestamp')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          const msg = change.doc.data();
+
+          // show only messages between currentUser and selectedUser
+          if (
+            msg.members.includes(currentUser.uid) &&
+            msg.members.includes(selectedUser)
+          ) {
+            const div = document.createElement('div');
+            div.className = 'message ' + (msg.sender === currentUser.uid ? 'sent' : 'received');
+            div.textContent = msg.text;
+            messageArea.appendChild(div);
+            messageArea.scrollTop = messageArea.scrollHeight;
+          }
+        }
+      });
+    });
+}
+ 
 // Select user & listen messages
 function selectUser(uid, name){
   selectedUser = uid;
@@ -134,23 +164,6 @@ function selectUser(uid, name){
   const messageArea = document.getElementById('messageArea');
 
   if(messagesListener) messagesListener(); // unsubscribe previous
-
-  messagesListener = db.collection('messages')
-    .where('members', 'array-contains', currentUser.uid)
-    .orderBy('timestamp')
-    .onSnapshot(snapshot => {
-      snapshot.docChanges().forEach(change=>{
-        if(change.type === 'added'){
-          const msg = change.doc.data();
-          if((msg.sender===currentUser.uid && msg.receiver===selectedUser) ||
-             (msg.sender===selectedUser && msg.receiver===currentUser.uid)){
-            const div = document.createElement('div');
-            div.className = 'message ' + (msg.sender===currentUser.uid ? 'sent':'received');
-            div.textContent = msg.text;
-            messageArea.appendChild(div);
-            messageArea.scrollTop = messageArea.scrollHeight;
-          }
-        }
       });
     });
 
