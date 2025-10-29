@@ -14,6 +14,7 @@
     overflow-x: hidden;
   }
 
+  /* Floating navbar */
   header {
     position: fixed;
     top: 16px;
@@ -31,26 +32,13 @@
     max-width: 1000px;
   }
 
-  .nav-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  header button {
-    border: none;
-    padding: 6px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.2s;
-  }
-
-  .back-btn { background: #6366f1; color: #fff; margin-right: 12px;}
+  .nav-title { font-size: 16px; font-weight: 600; color: #111827; }
+  header button { background: #ef4444; border: none; padding: 6px 14px; color: #fff; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+  header button:hover { background: #dc2626; }
+  .back-btn { background: #6366f1; margin-right: 12px; }
   .back-btn:hover { background: #4f46e5; }
 
-  .logout-btn { background: #ef4444; color: #fff; }
-  .logout-btn:hover { background: #dc2626; }
-
+  /* Container */
   .container {
     display: flex;
     flex-wrap: wrap;
@@ -61,64 +49,52 @@
     max-width: 1000px;
   }
 
+  /* Card */
   .card {
     background: #fff;
     border-radius: 16px;
     padding: 24px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: 0.2s;
     width: 300px;
     flex-shrink: 0;
-    transition: 0.2s;
   }
 
-  .card h2 { font-size: 20px; margin-bottom: 16px; }
   .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 20px; margin-bottom: 16px; color: #111827; }
 
-  .profile-pic {
-    width: 100px; height: 100px;
-    border-radius: 12px; /* rounded square */
-    object-fit: cover;
-    margin-bottom: 16px;
-    background: #d1d5db;
-    display: flex; justify-content: center; align-items: center;
-    font-weight: 600; font-size: 28px; color: #fff;
+  /* Profile */
+  #profilePic { 
+    width: 100px; height: 100px; border-radius: 50%; object-fit: cover; 
+    margin: 0 auto 16px auto; display: block; border: 2px solid #e5e7eb;
   }
 
-  .field {
-    display: flex; justify-content: space-between; align-items: center; margin: 10px 0;
-  }
-
-  .field input {
-    font-size: 15px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 8px 12px;
-    width: 65%;
-  }
-
+  .field { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+  .field input { font-size: 15px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; width: 65%; }
   .field input:disabled { background: #f3f4f6; color: #6b7280; border: none; }
 
-  .upload-btn, .remove-btn { margin-top: 8px; }
-
-  .save-btn, .support-btn {
-    margin-top: 16px; padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 15px; transition: 0.2s;
+  /* Buttons */
+  .save-btn, .support-btn, .upload-btn, .remove-btn {
+    margin-top: 16px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.2s;
+    background-color: #9ca3af; /* grey default */
+    color: #fff;
   }
 
-  .save-btn { background: #9ca3af; color: #fff; }
-  .save-btn.active { background: #6366f1; }
+  .save-btn.active, .upload-btn.active, .remove-btn.active { background-color: #6366f1; }
+  .save-btn:hover, .support-btn:hover, .upload-btn:hover, .remove-btn:hover { background-color: #4f46e5; }
 
-  .support-btn { background: #10b981; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
-  .support-btn:hover { background: #059669; }
+  .support-btn { background-color: #10b981; display: inline-flex; align-items: center; gap: 8px; }
+  .support-btn:hover { background-color: #059669; }
 
-  p { color: #6b7280; font-size: 14px; }
-  input[type="file"] { border: none; padding: 6px 0; }
-
-  .toast {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: #10b981; color: #fff; padding: 10px 20px; border-radius: 12px;
-    display: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  }
+  input[type="file"] { display: none; }
 </style>
 </head>
 <body>
@@ -126,31 +102,42 @@
 <header>
   <button class="back-btn" onclick="goBack()">← Back</button>
   <span class="nav-title">Account Settings</span>
-  <button class="logout-btn" onclick="logoutUser()">Logout</button>
+  <button onclick="logoutUser()">Logout</button>
 </header>
 
 <div class="container">
+  <!-- Profile Card -->
   <div class="card">
     <h2>Profile Information</h2>
-    <div id="profilePic" class="profile-pic">JD</div>
+    <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
     <div>
-      <input type="file" id="picInput" class="upload-btn">
-      <button class="remove-btn" onclick="removePhoto()">Remove Photo</button>
+      <label class="upload-btn" id="uploadBtnLabel">Choose File
+        <input type="file" id="picInput">
+      </label>
+      <button class="remove-btn" id="removeBtn">Remove Photo</button>
     </div>
-    <div class="field"><span>Email</span><input type="text" id="email" disabled></div>
-    <div class="field"><span>Name</span><input type="text" id="name"></div>
-    <div class="field"><span>Employee ID</span><input type="text" id="employeeId" disabled></div>
-    <button id="saveBtn" class="save-btn">Save Changes</button>
+    <div class="field">
+      <span>Email</span>
+      <input type="text" id="email" disabled>
+    </div>
+    <div class="field">
+      <span>Name</span>
+      <input type="text" id="name">
+    </div>
+    <div class="field">
+      <span>Employee ID</span>
+      <input type="text" id="employeeId" disabled>
+    </div>
+    <button class="save-btn" id="saveBtn">Save Changes</button>
   </div>
 
+  <!-- Support Card -->
   <div class="card">
     <h2>Support</h2>
     <p>Need help? Create a support ticket and we'll assist you promptly.</p>
     <button class="support-btn" onclick="createSupportTicket()">📧 Create a Support Ticket</button>
   </div>
 </div>
-
-<div id="toast" class="toast">✅ Profile updated successfully</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -172,102 +159,77 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 let currentUser = null;
+let profilePicChanged = false;
+let nameChanged = false;
+
 const saveBtn = document.getElementById('saveBtn');
-let originalData = {name:'', profilePic:''};
+const uploadBtnLabel = document.getElementById('uploadBtnLabel');
+const removeBtn = document.getElementById('removeBtn');
 
 auth.onAuthStateChanged(user => {
-  if(!user) window.location.href = '/';
+  if(!user) window.location.href='/';
   else {
     currentUser = user;
     document.getElementById('email').value = user.email;
 
-    db.collection('users').doc(user.uid).get().then(doc=>{
+    // Load profile
+    db.collection('users').doc(user.uid).get().then(doc => {
       if(doc.exists){
         const data = doc.data();
         document.getElementById('name').value = data.name || '';
-        originalData.name = data.name || '';
         document.getElementById('employeeId').value = data.employeeId || '';
-        originalData.profilePic = data.profilePic || '';
-        if(data.profilePic) setProfilePic(data.profilePic);
-        else setProfileInitials(data.name);
+        document.getElementById('profilePic').src = data.profilePic || 'https://via.placeholder.com/100';
       }
     });
   }
 });
 
-// Detect changes for button
-document.getElementById('name').addEventListener('input', toggleSaveBtn);
+document.getElementById('name').addEventListener('input', () => {
+  nameChanged = true;
+  toggleSaveBtn();
+});
 
-function toggleSaveBtn(){
-  const nameChanged = document.getElementById('name').value !== originalData.name;
-  const picChanged = profilePicChanged;
-  if(nameChanged || picChanged) saveBtn.classList.add('active');
-  else saveBtn.classList.remove('active');
+function toggleSaveBtn() {
+  if(profilePicChanged || nameChanged){
+    saveBtn.classList.add('active');
+    uploadBtnLabel.classList.add('active');
+  } else {
+    saveBtn.classList.remove('active');
+    uploadBtnLabel.classList.remove('active');
+  }
 }
 
-// Profile picture handling
-let profilePicChanged = false;
-
-const picDiv = document.getElementById('profilePic');
-document.getElementById('picInput').addEventListener('change', e=>{
+// Upload profile picture
+document.getElementById('picInput').addEventListener('change', e => {
   const file = e.target.files[0];
   if(!file) return;
   const storageRef = storage.ref('profilePics/' + currentUser.uid);
-  storageRef.put(file).then(snapshot=>{
-    snapshot.ref.getDownloadURL().then(url=>{
-      setProfilePic(url);
+  storageRef.put(file).then(snapshot => {
+    snapshot.ref.getDownloadURL().then(url => {
+      document.getElementById('profilePic').src = url;
       profilePicChanged = true;
       toggleSaveBtn();
     });
   });
 });
 
-function setProfilePic(url){
-  picDiv.style.background = 'none';
-  picDiv.style.color = '#fff';
-  picDiv.innerHTML = '';
-  const img = document.createElement('img');
-  img.src = url;
-  img.style.width = '100%';
-  img.style.height = '100%';
-  img.style.borderRadius = '12px';
-  img.style.objectFit = 'cover';
-  picDiv.appendChild(img);
-}
-
-function setProfileInitials(name){
-  picDiv.style.background = '#9ca3af';
-  picDiv.style.color = '#fff';
-  picDiv.innerHTML = getInitials(name);
-}
-
-function getInitials(name){
-  if(!name) return '';
-  return name.split(' ').map(n=>n[0].toUpperCase()).slice(0,2).join('');
-}
-
-function removePhoto(){
-  setProfileInitials(document.getElementById('name').value);
+// Remove profile picture
+removeBtn.addEventListener('click', () => {
+  const storageRef = storage.ref('profilePics/' + currentUser.uid);
+  storageRef.delete().catch(()=>{}); // ignore if missing
+  document.getElementById('profilePic').src = 'https://via.placeholder.com/100';
   profilePicChanged = true;
   toggleSaveBtn();
-}
-
-// Save profile
-saveBtn.addEventListener('click', ()=>{
-  const name = document.getElementById('name').value;
-  let profilePic = originalData.profilePic;
-  if(picDiv.querySelector('img')) profilePic = picDiv.querySelector('img').src;
-  db.collection('users').doc(currentUser.uid).set({name, profilePic},{merge:true})
-  .then(()=>{
-    originalData.name = name;
-    originalData.profilePic = profilePic;
-    profilePicChanged = false;
-    saveBtn.classList.remove('active');
-    showToast();
-  }).catch(err=>alert('❌ '+err.message));
 });
 
-// Support ticket
+function saveProfile(){
+  const name = document.getElementById('name').value;
+  const profilePic = document.getElementById('profilePic').src;
+  db.collection('users').doc(currentUser.uid).set({name, profilePic},{merge:true})
+    .then(()=>{ alert('✅ Profile updated!'); profilePicChanged=false; nameChanged=false; toggleSaveBtn(); })
+    .catch(err=>alert('❌ '+err.message));
+}
+
 function createSupportTicket(){
   const subject = encodeURIComponent("Support Ticket - " + currentUser.email);
   const body = encodeURIComponent("Dear Support Team,\n\nPlease assist with my issue.\n\nThank you.");
@@ -275,13 +237,7 @@ function createSupportTicket(){
 }
 
 function logoutUser(){ auth.signOut().then(()=>window.location.href='/'); }
-function goBack(){ window.location.href = '/dashboard'; }
-
-function showToast(){
-  const toast = document.getElementById('toast');
-  toast.style.display='block';
-  setTimeout(()=>toast.style.display='none', 2500);
-}
+function goBack(){ window.location.href='/dashboard'; }
 </script>
 </body>
 </html>
