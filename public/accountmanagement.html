@@ -234,15 +234,24 @@
 });
 
   document.getElementById('picInput').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    const storageRef = storage.ref('profilePics/' + currentUser.uid);
-    storageRef.put(file).then(snapshot => {
-      snapshot.ref.getDownloadURL().then(url => {
-        document.getElementById('profilePic').src = url;
-      });
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const storageRef = storage.ref('profilePics/' + currentUser.uid);
+  storageRef.put(file).then(snapshot => {
+    snapshot.ref.getDownloadURL().then(url => {
+      // Update preview immediately
+      document.getElementById('profilePic').src = url;
+
+      // ✅ Save download URL to Firestore
+      db.collection('users').doc(currentUser.uid).set({
+        profilePic: url
+      }, { merge: true })
+      .then(() => console.log("✅ Profile picture updated"))
+      .catch(err => console.error("❌ Failed to save pic:", err));
     });
   });
+});
 
   function saveProfile(){
     const name = document.getElementById('name').value;
