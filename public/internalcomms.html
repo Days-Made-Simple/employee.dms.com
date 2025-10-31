@@ -217,6 +217,19 @@ document.getElementById('sendBtn').onclick = async () => {
 // Typing indicator
 const inputEl = document.getElementById('messageInput');
 inputEl.addEventListener('input', ()=>{ updateTyping(inputEl.value.length>0); });
+ // Send message on Enter, allow Shift+Enter for newline
+inputEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') {
+    if(e.shiftKey){
+      // Allow newline when Shift+Enter
+      return;
+    } else {
+      // Send message
+      e.preventDefault(); // prevent newline
+      document.getElementById('sendBtn').click();
+    }
+  }
+});
 function updateTyping(isTyping){
   db.collection('typing').doc(currentUser.uid).set({isTyping});
   if(typingTimeout) clearTimeout(typingTimeout);
