@@ -155,7 +155,11 @@ function selectUser(uid, name){
       });
 
       // Sort messages by timestamp
-      messages.sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+      messages.sort((a,b) => {
+       const t1 = a.timestamp?.seconds || Date.now()/1000;
+       const t2 = b.timestamp?.seconds || Date.now()/1000;
+       return t1 - t2;
+     });
 
       // Render messages
       messageArea.innerHTML = '';
@@ -183,16 +187,31 @@ document.getElementById('sendBtn').onclick = async () => {
   const text = document.getElementById('messageInput').value.trim();
   if(!text || !selectedUser) return;
 
-  await db.collection('messages').add({
-    sender: currentUser.uid,
-    receiver: selectedUser,
-    members: [currentUser.uid, selectedUser],
-    text,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
+  const messageArea = document.getElementById('messageArea');
 
-  document.getElementById('messageInput').value='';
+  // Render immediately (optimistic UI)
+  const div = document.createElement('div');
+  div.className = 'message sent';
+  div.textContent = text;
+  messageArea.appendChild(div);
+  messageArea.scrollTop = messageArea.scrollHeight;
+
+  document.getElementById('messageInput').value = '';
   updateTyping(false);
+
+  try {
+    await db.collection('messages').add({
+      sender: currentUser.uid,
+      receiver: selectedUser,
+      members: [currentUser.uid, selectedUser],
+      text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) {
+    console.error('Error sending message:', e);
+    // Optional: remove the optimistic message if it fails
+    messageArea.removeChild(div);
+  }
 };
 
 // Typing indicator
