@@ -45,15 +45,19 @@
       transition: transform 0.3s ease;
       background:#1f2937;
     }
-    .chat-header (max-width: 768px)
+   
+    .sidebar.show { transform: translateX(0); }
+   
+    .chat-section { width: 100%; flex: 1; }
+   
+    #backBtn { display: inline-block; }
+
+    .chat-header
       position: sticky;
       top: 0;
       z-index: 5;
       background:#f3f4f6;
    }
-    .sidebar.show { transform: translateX(0); }
-    .chat-section { width: 100%; flex: 1; }
-    #backBtn { display: inline-block; }
   }
 </style>
 </head>
