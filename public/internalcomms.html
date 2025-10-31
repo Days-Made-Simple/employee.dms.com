@@ -28,10 +28,33 @@
   .message.sent { background:#6366f1; color:white; align-self:flex-end; }
   .message.received { background:#e5e7eb; color:#111827; align-self:flex-start; }
 
-  .chat-input { display:flex; padding:16px; border-top:1px solid #e5e7eb; }
+  .chat-input { display:flex; padding:16px; border-top:1px solid #e5e7eb; background:white; }
   .chat-input textarea { flex:1; padding:12px 14px; border:1px solid #d1d5db; border-radius:8px; margin-right:10px; resize:none; overflow:hidden; min-height:36px; max-height:120px; }
   .chat-input button { background:#6366f1; color:white; padding:12px 18px; border:none; border-radius:8px; cursor:pointer; }
   .chat-input button:hover { background:#4f46e5; }
+
+  /* Delete confirmation alert */
+  .delete-alert {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1f2937;
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 999;
+  }
+  .delete-alert.hidden { display: none; }
+  .delete-actions { display:flex; gap:10px; justify-content:flex-end; }
+  .delete-actions button {
+    border:none; border-radius:6px; padding:6px 12px; cursor:pointer;
+  }
+  .delete-actions #confirmDelete { background:#dc2626; color:white; }
+  .delete-actions #cancelDelete { background:#6b7280; color:white; }
 
   /* Mobile responsiveness */
   @media (max-width: 768px) {
@@ -45,11 +68,8 @@
       transition: transform 0.3s ease;
       background:#1f2937;
     }
-   
     .sidebar.show { transform: translateX(0); }
-   
-    .chat-section { width: 100%; flex: 1; }
-   
+    .chat-section { width: 100%; flex: 1; display:flex; flex-direction:column; }
     #backBtn { display: inline-block; }
 
     .chat-header {
@@ -57,25 +77,15 @@
       top: 0;
       z-index: 5;
       background:#f3f4f6;
-   }
+    }
 
-   .chat-input {
+    .chat-input {
       position: sticky;
-      top: 0;
+      bottom: 0;
       z-index: 5;
       background: white;
-   }
-
-    .messagearea {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px:
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 0;
     }
   }
- 
 </style>
 </head>
 <body>
@@ -95,6 +105,15 @@
   <div class="chat-input">
     <textarea id="messageInput" placeholder="Type a message..." disabled></textarea>
     <button id="sendBtn" disabled>Send</button>
+  </div>
+</div>
+
+<!-- Delete confirmation alert -->
+<div id="deleteAlert" class="delete-alert hidden">
+  <p>Delete this message?</p>
+  <div class="delete-actions">
+    <button id="confirmDelete">Delete</button>
+    <button id="cancelDelete">Cancel</button>
   </div>
 </div>
 
@@ -120,23 +139,24 @@ let selectedUser = null;
 let messagesListener = null;
 let typingListener = null;
 let typingTimeout = null;
+let messageToDelete = null;
 
 // Sidebar & back button
 const sidebar = document.querySelector('.sidebar');
 const backBtn = document.getElementById('backBtn');
-backBtn.addEventListener('click', ()=>{ sidebar.classList.add('show'); });
+backBtn.addEventListener('click', ()=> sidebar.classList.add('show'));
 
 // Auth
 auth.onAuthStateChanged(user => {
   if(!user) window.location.href="login.html";
   else {
     currentUser = user;
-    db.collection('users').doc(user.uid).set({online:true},{merge:true}); // mark online
+    db.collection('users').doc(user.uid).set({online:true},{merge:true});
     loadUsers();
   }
 });
 
-// Load user list
+// Load users
 function loadUsers() {
   db.collection('users').onSnapshot(snapshot => {
     const userList = document.getElementById('userList');
@@ -148,15 +168,12 @@ function loadUsers() {
       const div = document.createElement('div');
       div.className = 'user-item';
       div.onclick = () => selectUser(uid, user.name);
-
-      // Avatar
-      let avatar = user.profilePic ? document.createElement('img') : document.createElement('div');
+      let avatar = user.profilePic ? document.createElement('img') : createInitials(user.name);
       if(user.profilePic){
         avatar.src = user.profilePic;
         avatar.className='avatar';
         avatar.onerror = ()=>{ avatar.replaceWith(createInitials(user.name)); };
-      } else avatar = createInitials(user.name);
-
+      }
       avatar.classList.add(user.online?'online':'offline');
       div.appendChild(avatar);
       const span = document.createElement('span');
@@ -167,7 +184,6 @@ function loadUsers() {
   });
 }
 
-// Initials fallback
 function createInitials(name){
   const initials = name ? name.split(' ').map(n=>n[0]).join('').toUpperCase():'?';
   const el = document.createElement('div');
@@ -182,8 +198,6 @@ function selectUser(uid, name){
   document.getElementById('chatHeader').textContent = `Chat with ${name}`;
   document.getElementById('messageInput').disabled = false;
   document.getElementById('sendBtn').disabled = false;
-
-  // Mobile: hide sidebar
   if(window.innerWidth <= 768) sidebar.classList.remove('show');
 
   const messageArea = document.getElementById('messageArea');
@@ -197,17 +211,23 @@ function selectUser(uid, name){
     .onSnapshot(snapshot => {
       const messages = [];
       snapshot.forEach(doc => {
-        const msg = doc.data();
+        const msg = { id: doc.id, ...doc.data() };
         if(msg.members.includes(currentUser.uid) && msg.members.includes(selectedUser)){
           messages.push(msg);
         }
       });
-      messages.sort((a,b)=> (a.timestamp?.seconds||Date.now()/1000)-(b.timestamp?.seconds||Date.now()/1000));
-      messageArea.innerHTML = '';
+      messages.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
+      messageArea.innerHTML='';
       messages.forEach(msg=>{
         const div = document.createElement('div');
-        div.className = 'message ' + (msg.sender===currentUser.uid?'sent':'received');
-        div.textContent = msg.text;
+        div.className='message ' + (msg.sender===currentUser.uid?'sent':'received');
+        div.textContent=msg.text;
+        // Right-click delete option
+        div.addEventListener('contextmenu', e=>{
+          e.preventDefault();
+          messageToDelete = msg.id;
+          showDeleteAlert();
+        });
         messageArea.appendChild(div);
       });
       messageArea.scrollTop = messageArea.scrollHeight;
@@ -223,19 +243,8 @@ function selectUser(uid, name){
 document.getElementById('sendBtn').onclick = async ()=>{
   const text = document.getElementById('messageInput').value.trim();
   if(!text || !selectedUser) return;
-
-  const messageArea = document.getElementById('messageArea');
-
-  // Optimistic UI
-  const div = document.createElement('div');
-  div.className='message sent';
-  div.textContent=text;
-  messageArea.appendChild(div);
-  messageArea.scrollTop=messageArea.scrollHeight;
-
   document.getElementById('messageInput').value='';
   updateTyping(false);
-
   try{
     await db.collection('messages').add({
       sender: currentUser.uid,
@@ -244,22 +253,19 @@ document.getElementById('sendBtn').onclick = async ()=>{
       text,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-  }catch(e){
-    console.error('Error sending message:',e);
-    messageArea.removeChild(div);
-  }
+  }catch(e){ console.error('Error sending message:',e); }
 }
 
-// Typing & Enter/Shift+Enter
-const inputEl = document.getElementById('messageInput');
-inputEl.addEventListener('input', ()=>{
+// Typing
+const inputEl=document.getElementById('messageInput');
+inputEl.addEventListener('input',()=>{
   inputEl.style.height='auto';
   inputEl.style.height=inputEl.scrollHeight+'px';
   updateTyping(inputEl.value.length>0);
 });
-inputEl.addEventListener('keydown', (e)=>{
+inputEl.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
-    if(e.shiftKey) return; // newline
+    if(e.shiftKey) return;
     e.preventDefault();
     document.getElementById('sendBtn').click();
   }
@@ -269,6 +275,21 @@ function updateTyping(isTyping){
   if(typingTimeout) clearTimeout(typingTimeout);
   if(isTyping) typingTimeout=setTimeout(()=>updateTyping(false),3000);
 }
+
+// Delete message alert logic
+const deleteAlert=document.getElementById('deleteAlert');
+const confirmDelete=document.getElementById('confirmDelete');
+const cancelDelete=document.getElementById('cancelDelete');
+function showDeleteAlert(){ deleteAlert.classList.remove('hidden'); }
+cancelDelete.onclick=()=>{ deleteAlert.classList.add('hidden'); messageToDelete=null; };
+confirmDelete.onclick=async()=>{
+  if(!messageToDelete) return;
+  try{
+    await db.collection('messages').doc(messageToDelete).delete();
+    messageToDelete=null;
+    deleteAlert.classList.add('hidden');
+  }catch(e){ console.error('Error deleting:',e); }
+};
 </script>
 </body>
 </html>
