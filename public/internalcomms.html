@@ -332,6 +332,21 @@ function updateTyping(isTyping){
   if(isTyping) typingTimeout=setTimeout(()=>updateTyping(false),3000);
 }
 
+ let touchTimer;
+
+document.getElementById('messageArea').addEventListener('touchstart', (e) => {
+  const messageDiv = e.target.closest('.message');
+  if (!messageDiv) return;
+
+  touchTimer = setTimeout(() => {
+    showDeleteAlert(messageDiv);
+  }, 600); // hold for 0.6s to trigger delete
+});
+
+document.getElementById('messageArea').addEventListener('touchend', () => {
+  clearTimeout(touchTimer);
+});
+
 // Delete message alert logic
 const deleteAlert=document.getElementById('deleteAlert');
 const confirmDelete=document.getElementById('confirmDelete');
